@@ -2,7 +2,7 @@
 
 ###Bill Vaughn
 ###Bill.000.vaughn@gmail.com
-###OOT Install, DB_Parse, KML/KMZ Creator
+###SDR Device Setup, OOT Install, DB_Parse, KML/KMZ Creator
 
 import mysql.connector
 import os
@@ -10,14 +10,37 @@ import csv
 import simplekml
 import sys
 import datetime
-import parseargs
+#import parseargs
 
-###2DO make the args, defaults, and vars for the db_conn, and file, right now it's static for croc...
 
-db_conn = mysql.connector.connect(host="localhost",port="3306",user="csv_user",password="needtosecurelydothis",database="default")
+#2do Define as Args to be passed in, below use as default
+HOST="localhost"
+PORT="3306"
+USER="csv_user"
+PASSWORD="needtosecurelydothis"
+DBN="default"
+
+TABLE="known_towers"
+QryStmt="SELECT * FROM "+TABLE+";"
+
+dbArgs= {
+'user': USER,
+'password': PASSWORD,
+'host': '127.0.0.1',
+'port': '3306',
+'database': DBN,
+'raise_on_warnings': True,}
+
+db_conn = mysql.connector.connect(**dbArgs)
 c = db_conn.cursor()
 
-c.execute("SELECT * FROM known_towers;")
+
+#2do Print table in db, parse out only data, push to menu via case select
+
+
+
+
+c.execute(QryStmt)
 db_o = c.fetchall()
 lstQry = []
 for i in db_o:
@@ -28,22 +51,29 @@ q = (q.replace('(', '').replace(')',''))
 csvi = ""
 for x in q.split('\n'):
     csvi += '{0}'.format(x.replace('\t', ','))
-fN = 'crocidilieHunter_{0}.csv'.format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S')))
+
+#2DO Make options that coorrsponds to app
+APPDB_OUT_FN='crocidilieHunter_{0}'
+
+fN = str(APPDB_OUT_FN+'.csv').format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S')))
+
 csvF = open(fN, 'w')
 csvF.write(csvi)
 csvF.close()
-
 print(fN)
-
 inFn = csv.reader(open(fN,'r'))
 k0t=simplekml.Kml()
-
 for row in inFn:
+
+#2DO additional rows for data
   k0t.newpoint(name=row[0], coords=[(row[2],row[1])])
-  #print(row[2])
-croc_kml = ('crocidilieHunter_{0}.kml'.format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S'))))
 
-k0t.save(croc_kml)
+APP_DBOUTKML = (str(APPDB_OUT_FN+'.kml').format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S'))))
+APP_DBOUTKMZ = (str(APPDB_OUT_FN+'.kmz').format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S'))))
+mZfrmL="$(which gzip) -cvf $(ls ./ | grep *\.kml) > "+APP_DBOUTKMZ
+cUcmd="&& mv *\.csv ./csv_files && mv *\.kml ./kml_files && mv *\.kmz ./kmz_files"
 
-os.system("$(which gzip) -cvf $(ls ./ | grep *\.kml) > croc.kmz && mv *\.kml ./kml_files")
 
+k0t.save(APP_DBOUTKML)
+
+os.system(mZfrmL+" "+cUcmd)
