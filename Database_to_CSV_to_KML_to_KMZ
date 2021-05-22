@@ -1,0 +1,49 @@
+#!/bin/python3.8
+
+###Bill Vaughn
+###Bill.000.vaughn@gmail.com
+###OOT Install, DB_Parse, KML/KMZ Creator
+
+import mysql.connector
+import os
+import csv
+import simplekml
+import sys
+import datetime
+import parseargs
+
+###2DO make the args, defaults, and vars for the db_conn, and file, right now it's static for croc...
+
+db_conn = mysql.connector.connect(host="localhost",port="3306",user="csv_user",password="needtosecurelydothis",database="default")
+c = db_conn.cursor()
+
+c.execute("SELECT * FROM known_towers;")
+db_o = c.fetchall()
+lstQry = []
+for i in db_o:
+	lstQry.append(i)
+q = '\r\n'.join([str(x) for x in lstQry])
+q = (q.replace('(', '').replace(')',''))
+
+csvi = ""
+for x in q.split('\n'):
+    csvi += '{0}'.format(x.replace('\t', ','))
+fN = 'crocidilieHunter_{0}.csv'.format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S')))
+csvF = open(fN, 'w')
+csvF.write(csvi)
+csvF.close()
+
+print(fN)
+
+inFn = csv.reader(open(fN,'r'))
+k0t=simplekml.Kml()
+
+for row in inFn:
+  k0t.newpoint(name=row[0], coords=[(row[2],row[1])])
+  #print(row[2])
+croc_kml = ('crocidilieHunter_{0}.kml'.format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S'))))
+
+k0t.save(croc_kml)
+
+os.system("$(which gzip) -cvf $(ls ./ | grep *\.kml) > croc.kmz && mv *\.kml ./kml_files")
+
