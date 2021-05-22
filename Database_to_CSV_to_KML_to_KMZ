@@ -12,7 +12,6 @@ import sys
 import datetime
 #import parseargs
 
-
 #2do Define as Args to be passed in, below use as default
 HOST="localhost"
 PORT="3306"
@@ -33,12 +32,7 @@ dbArgs= {
 
 db_conn = mysql.connector.connect(**dbArgs)
 c = db_conn.cursor()
-
-
 #2do Print table in db, parse out only data, push to menu via case select
-
-
-
 
 c.execute(QryStmt)
 db_o = c.fetchall()
@@ -64,7 +58,6 @@ print(fN)
 inFn = csv.reader(open(fN,'r'))
 k0t=simplekml.Kml()
 for row in inFn:
-
 #2DO additional rows for data
   k0t.newpoint(name=row[0], coords=[(row[2],row[1])])
 
@@ -72,7 +65,6 @@ APP_DBOUTKML = (str(APPDB_OUT_FN+'.kml').format((datetime.datetime.now().strftim
 APP_DBOUTKMZ = (str(APPDB_OUT_FN+'.kmz').format((datetime.datetime.now().strftime('%d-%m-%Y:%H:%M:%S'))))
 mZfrmL="$(which gzip) -cvf $(ls ./ | grep *\.kml) > "+APP_DBOUTKMZ
 cUcmd="&& mv *\.csv ./csv_files && mv *\.kml ./kml_files && mv *\.kmz ./kmz_files"
-
 
 k0t.save(APP_DBOUTKML)
 
